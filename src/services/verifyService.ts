@@ -1,7 +1,6 @@
-import api from './api'; // 假设你已有封装好的 axios 实例
+import api from './api';
 
 export const verifyService = {
-  // 综合验证接口 (文本或图片)
   check: async (params: { type: 'text' | 'image'; text?: string; file?: File }) => {
     const formData = new FormData();
     formData.append('type', params.type);
@@ -14,7 +13,6 @@ export const verifyService = {
     return response.data;
   },
 
-  // Hash 直接查询
   lookupHash: async (txHash: string) => {
     const response = await api.get(`/verify/tx/${txHash}`);
     return response.data;

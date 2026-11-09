@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Layout, Card, Upload, Button, Table, Tag, Progress, Space,
+  Layout, Card, Upload, Button, Table, Tag, Space,
   Typography, Tooltip, message, Modal, Empty,
 } from 'antd';
 import {
@@ -18,10 +18,9 @@ const { Content } = Layout;
 const { Dragger } = Upload;
 const { Title, Text } = Typography;
 
-// Mock 侧边栏会话数据
 const MOCK_SESSIONS = [
-  { session_id: 1, title: "TrustFlow 技术原理", last_active: "Today" },
-  { session_id: 2, title: "RAG 溯源测试", last_active: "Yesterday" },
+  { session_id: 1, title: "How TrustFlow works", last_active: "Today" },
+  { session_id: 2, title: "RAG provenance test", last_active: "Yesterday" },
 ];
 
 const KnowledgePage: React.FC = () => {
@@ -32,19 +31,14 @@ const KnowledgePage: React.FC = () => {
     file: null,
   });
 
-  // 1. 初始化及刷新数据
 const fetchFiles = async () => {
   setLoading(true);
   try {
     const data = await knowledgeService.getDocuments();
-    console.log('转换后的文档数据:', data); // 调试用
     setFiles(data);
-  } catch (error: any) {
-    // 关键：打印错误详情
-    console.error('获取列表完整错误信息:', error);
-    // 如果 error.response 存在，说明是接口返回了 4xx/5xx 错误
-    // 如果没有，说明是代码逻辑（如 map 映射）报错
-    message.error(`获取列表失败: ${error.message || '未知错误'}`);
+  } catch (error: unknown) {
+    console.error('Failed to load documents:', error);
+    message.error(`Failed to load documents: ${error instanceof Error ? error.message : 'Unknown error'}`);
   } finally {
     setLoading(false);
   }
@@ -54,7 +48,6 @@ const fetchFiles = async () => {
     fetchFiles();
   }, []);
 
-  // 2. 辅助格式化函数
   const formatFileSize = (bytes: number): string => {
     if (bytes === 0) return '0 B';
     const k = 1024;
@@ -71,19 +64,18 @@ const fetchFiles = async () => {
   const getStatusTag = (status: KnowledgeFile['status']) => {
     switch (status) {
       case 'ready':
-        return <Tag icon={<CheckCircleOutlined />} color="success">已就绪</Tag>;
+        return <Tag icon={<CheckCircleOutlined />} color="success">Ready</Tag>;
       case 'processing':
-        return <Tag icon={<SyncOutlined spin />} color="processing">解析中</Tag>;
+        return <Tag icon={<SyncOutlined spin />} color="processing">Processing</Tag>;
       case 'uploading':
-        return <Tag icon={<SyncOutlined spin />} color="default">上传中</Tag>;
+        return <Tag icon={<SyncOutlined spin />} color="default">Uploading</Tag>;
       case 'failed':
-        return <Tag icon={<CloseCircleOutlined />} color="error">失败</Tag>;
+        return <Tag icon={<CloseCircleOutlined />} color="error">Failed</Tag>;
       default:
         return <Tag color="default">{status}</Tag>;
     }
   };
 
-  // 3. 上传逻辑
   const uploadProps: UploadProps = {
     name: 'file',
     multiple: false,
@@ -92,7 +84,6 @@ const fetchFiles = async () => {
     customRequest: async ({ file, onSuccess, onError }) => {
       const fileObj = file as File;
       
-      // UI 预占位
       const tempId = Date.now();
       const placeholder: KnowledgeFile = {
         id: tempId,
@@ -106,40 +97,38 @@ const fetchFiles = async () => {
 
       try {
         await knowledgeService.uploadDocument(fileObj);
-        message.success(`${fileObj.name} 上传成功，系统正在后台建立索引`);
+        message.success(`${fileObj.name} uploaded. Indexing is in progress.`);
         onSuccess?.(null);
-        fetchFiles(); // 重新拉取真实列表
+        fetchFiles();
       } catch (err) {
-        message.error(`${fileObj.name} 上传失败`);
+        message.error(`${fileObj.name} upload failed`);
         setFiles(prev => prev.filter(f => f.id !== tempId));
         onError?.(err as Error);
       }
     },
   };
 
-  // 4. 删除逻辑
   const handleDelete = (id: number) => {
     Modal.confirm({
-      title: '确认删除',
-      content: '删除后，该文件将从知识库中移除且无法恢复。确定吗？',
-      okText: '删除',
+      title: 'Confirm deletion',
+      content: 'This document will be permanently removed from the knowledge base. Continue?',
+      okText: 'Delete',
       okType: 'danger',
       onOk: async () => {
         try {
           await knowledgeService.deleteDocument(id);
-          message.success('文件已删除');
+          message.success('Document deleted');
           setFiles(prev => prev.filter((f) => f.id !== id));
-        } catch (error) {
-          message.error('删除操作失败');
+        } catch {
+          message.error('Failed to delete document');
         }
       },
     });
   };
 
-  // 5. 表格列定义
   const columns: ColumnsType<KnowledgeFile> = [
     {
-      title: '文件名',
+      title: 'File name',
       dataIndex: 'filename',
       key: 'filename',
       render: (text, record) => (
@@ -150,14 +139,14 @@ const fetchFiles = async () => {
       ),
     },
     {
-      title: '状态',
+      title: 'Status',
       dataIndex: 'status',
       key: 'status',
       width: 120,
       render: (status) => getStatusTag(status),
     },
     {
-      title: '链上存证',
+      title: 'On-chain record',
       dataIndex: 'tx_hash',
       key: 'tx_hash',
       width: 150,
@@ -167,24 +156,24 @@ const fetchFiles = async () => {
             {hash.slice(0, 10)}...
           </Tag>
         </Tooltip>
-      ) : <Text type="secondary">等待中</Text>,
+      ) : <Text type="secondary">Pending</Text>,
     },
     {
-      title: '大小',
+      title: 'Size',
       dataIndex: 'file_size',
       key: 'file_size',
       width: 100,
       render: (size) => formatFileSize(size),
     },
     {
-      title: '上传时间',
+      title: 'Uploaded at',
       dataIndex: 'created_at',
       key: 'created_at',
       width: 160,
       render: (time) => time ? time.replace('T', ' ').slice(0, 16) : '-',
     },
     {
-      title: '操作',
+      title: 'Actions',
       key: 'action',
       width: 100,
       render: (_, record) => (
@@ -212,8 +201,8 @@ const fetchFiles = async () => {
         <div style={{ maxWidth: 1200, margin: '0 auto' }}>
           
           <div style={{ marginBottom: 24 }}>
-            <Title level={3}>知识库管理</Title>
-            <Text type="secondary">上传本地文档，为 AI 提供私有知识增强 (RAG)，所有文档均经过哈希上链存证。</Text>
+            <Title level={3}>Knowledge Base</Title>
+            <Text type="secondary">Upload documents for private retrieval-augmented generation (RAG). Document hashes are recorded on-chain.</Text>
           </div>
 
           <Card style={{ marginBottom: 24, borderRadius: 12 }}>
@@ -221,14 +210,14 @@ const fetchFiles = async () => {
               <p className="ant-upload-drag-icon">
                 <InboxOutlined style={{ color: '#10a37f', fontSize: 48 }} />
               </p>
-              <p className="ant-upload-text">点击或拖拽 PDF/TXT 文件上传</p>
-              <p className="ant-upload-hint">单文件最大支持 50MB</p>
+              <p className="ant-upload-text">Click or drag a PDF/TXT file to upload</p>
+              <p className="ant-upload-hint">Maximum file size: 50 MB</p>
             </Dragger>
           </Card>
 
           <Card 
-            title="文档列表" 
-            extra={<Button icon={<SyncOutlined />} onClick={fetchFiles} loading={loading}>刷新</Button>}
+            title="Documents"
+            extra={<Button icon={<SyncOutlined />} onClick={fetchFiles} loading={loading}>Refresh</Button>}
             style={{ borderRadius: 12 }}
           >
             <Table
@@ -237,24 +226,24 @@ const fetchFiles = async () => {
               dataSource={files}
               rowKey="id"
               pagination={{ pageSize: 8 }}
-              locale={{ emptyText: <Empty description="暂无知识库文档" /> }}
+              locale={{ emptyText: <Empty description="No documents yet" /> }}
             />
           </Card>
         </div>
 
         <Modal
-          title="文档详细信息"
+          title="Document details"
           open={detailModal.open}
           onCancel={() => setDetailModal({ open: false, file: null })}
-          footer={[<Button key="ok" onClick={() => setDetailModal({ open: false, file: null })}>确定</Button>]}
+          footer={[<Button key="ok" onClick={() => setDetailModal({ open: false, file: null })}>OK</Button>]}
         >
           {detailModal.file && (
             <div style={{ paddingTop: 10 }}>
               <Space direction="vertical" style={{ width: '100%' }} size="middle">
-                <div><Text type="secondary">文件名：</Text><Text strong>{detailModal.file.filename}</Text></div>
+                <div><Text type="secondary">File name：</Text><Text strong>{detailModal.file.filename}</Text></div>
                 
-                <div><Text type="secondary">区块链交易哈希：</Text><br /><Text code>{detailModal.file.tx_hash || '存证中...'}</Text></div>
-                <div><Text type="secondary">系统状态：</Text>{getStatusTag(detailModal.file.status)}</div>
+                <div><Text type="secondary">Blockchain transaction hash：</Text><br /><Text code>{detailModal.file.tx_hash || 'Recording...'}</Text></div>
+                <div><Text type="secondary">System status：</Text>{getStatusTag(detailModal.file.status)}</div>
               </Space>
             </div>
           )}

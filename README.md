@@ -1,102 +1,47 @@
-# React + TypeScript + Vite
+# TrustFlow Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+TrustFlow is a React and TypeScript interface for blockchain-backed AI content provenance. It provides wallet sign-in, text and image generation, a document knowledge base, and verification by content or transaction hash.
 
-Currently, two official plugins are available:
+This repository contains the **frontend only**. The API and blockchain services must be supplied separately. The UI does not itself prove that content has been recorded on-chain; it displays results returned by the backend.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Requirements
 
-## React Compiler
+- Node.js 20.19+ or 22.12+
+- npm
+- A compatible backend API, available at `http://localhost:8080` by default
+- MetaMask or another compatible browser wallet for sign-in
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Run locally
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm ci
+cp .env.example .env.local
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+On Windows PowerShell, use `Copy-Item .env.example .env.local` instead of `cp` if needed. Set `VITE_API_BASE_URL` in `.env.local` to the backend origin, without `/api/v1`. For example:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```dotenv
+VITE_API_BASE_URL=http://localhost:8080
 ```
 
+The backend must allow requests from the frontend origin. When deploying over HTTPS, use an HTTPS backend URL as well.
+
+## Checks
+
+```bash
+npm run build
+npm run lint
 ```
-src/
-├── assets/             # 静态资源
-├── components/         # 公共组件
-│   ├── common/         # 通用组件 (Button, Input 等)
-│   ├── layout/         # 布局组件 (Sidebar, Header - FE-1负责)
-│   └── business/       # 业务组件 (如 ChatBubble, FileUploader)
-├── hooks/              # 自定义 Hooks (useWeb3, useStream)
-├── pages/              # 页面级组件
-│   ├── auth/           # 登录页 (FE-1)
-│   ├── chat/           # 创作端/对话页 (FE-1)
-│   ├── knowledge/      # 知识库管理 (FE-2)
-│   ├── verify/         # 验证终端 (FE-2)
-│   └── dashboard/      # 落地页/仪表盘 (FE-2)
-├── services/           # API 接口管理 (根据后端模块拆分)
-│   ├── api.ts          # Axios 实例与拦截器 (FE-1)
-│   ├── authService.ts  # 认证相关接口
-│   ├── chatService.ts  # 对话相关接口
-│   └── kbService.ts    # 知识库相关接口
-├── store/              # 全局状态管理 (Zustand)
-│   ├── useAuthStore.ts # 用户与Token状态
-│   └── useAppStore.ts  # 全局UI状态
-├── utils/              # 工具函数
-│   ├── web3.ts         # 钱包连接工具
-│   └── format.ts       # 格式化工具
-├── App.tsx             # 路由配置入口
-└── main.tsx
-```
+
+## Public repository and security notes
+
+- Never put API keys, wallet private keys, seed phrases, production credentials, or real user documents in this repository or in `VITE_` environment variables. Vite embeds those variables in browser code.
+- Local `.env` files and build output are ignored by Git. `.env.example` contains only a public development URL.
+- Wallet signatures are sent to the backend for authentication and are not logged by the frontend. Authentication state is stored in browser session storage and cleared when the tab session ends or the user signs out.
+- The backend must validate wallet signatures, nonces, authorization, uploads, and provenance claims. Client-side route checks are only a user interface convenience.
+- The original project history is available at [LUOLUO277/trustflow-frontend](https://github.com/LUOLUO277/trustflow-frontend). This public snapshot starts with a fresh Git history so earlier commit metadata and files are not republished here.
+
+## Stack
+
+React 19, TypeScript, Vite, Ant Design, Axios, ethers, Zustand, and React Router.

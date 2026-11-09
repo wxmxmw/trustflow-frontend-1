@@ -1,6 +1,6 @@
 // src/pages/auth/LoginPage.tsx
 import React from 'react';
-import { Button, Card, Typography } from 'antd';
+import { Button, Typography } from 'antd';
 import { WalletOutlined } from '@ant-design/icons';
 import { useWeb3Login } from '../../hooks/useWeb3Login';
 
@@ -11,18 +11,15 @@ const LoginPage: React.FC = () => {
 
   return (
     <div style={styles.container}>
-      {/* 居中的登录卡片区域 */}
       <div style={styles.content}>
-        {/* Logo 区域 (可以用文字代替) */}
         <div style={styles.logoSection}>
           <div style={styles.logoCircle} />
           <Title level={2} style={{ margin: '16px 0 8px' }}>TrustFlow</Title>
           <Text type="secondary" style={{ fontSize: '16px' }}>
-            基于区块链的可信 AIGC 溯源系统
+            Blockchain-backed AIGC provenance
           </Text>
         </div>
 
-        {/* 登录按钮区域 */}
         <div style={styles.actionSection}>
           <Button 
             type="primary" 
@@ -32,12 +29,12 @@ const LoginPage: React.FC = () => {
             loading={loading}
             style={styles.loginBtn}
           >
-            连接钱包登录
+            Connect wallet to sign in
           </Button>
           
           <div style={styles.footerText}>
             <Text type="secondary" style={{ fontSize: '12px' }}>
-              无需注册，连接 Web3 钱包即刻开启创作
+              No registration needed. Connect your Web3 wallet to get started.
             </Text>
           </div>
         </div>
@@ -46,7 +43,6 @@ const LoginPage: React.FC = () => {
   );
 };
 
-// 简单的内联样式对象 (模仿 ChatGPT 的简洁风格)
 const styles = {
   container: {
     height: '100vh',
@@ -54,7 +50,7 @@ const styles = {
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#ffffff', // ChatGPT 浅色模式背景
+    backgroundColor: '#ffffff',
     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial',
   } as React.CSSProperties,
   content: {
@@ -75,7 +71,7 @@ const styles = {
   logoCircle: {
     width: '60px',
     height: '60px',
-    backgroundColor: '#000', // 黑色 Logo
+    backgroundColor: '#000',
     borderRadius: '50%',
     marginBottom: '10px',
   },
@@ -89,7 +85,7 @@ const styles = {
     height: '50px',
     borderRadius: '6px',
     fontSize: '16px',
-    backgroundColor: '#10a37f', // ChatGPT 标志性的绿色，或者你可以用黑色 #000
+    backgroundColor: '#10a37f',
     borderColor: '#10a37f',
     width: '100%',
   },

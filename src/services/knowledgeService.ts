@@ -1,6 +1,5 @@
 import api from './api';
 
-// 定义前端使用的文件接口
 export interface KnowledgeFile {
   id: number;
   filename: string;
@@ -10,16 +9,25 @@ export interface KnowledgeFile {
   created_at: string;
   hash?: string;
   tx_hash?: string;
-  chunk_count?: number; // 后端若暂无此字段可默认为 0
+  chunk_count?: number;
 }
 
-// 内部转换工具：将后端字段映射为前端组件识别的字段
-const mapBackendToFrontend = (item: any): KnowledgeFile => ({
+interface BackendDocument {
+  doc_id: number;
+  file_name: string;
+  file_size?: number;
+  status: KnowledgeFile['status'];
+  upload_time: string;
+  tx_hash?: string;
+  file_hash?: string;
+  chunk_count?: number;
+}
+
+const mapBackendToFrontend = (item: BackendDocument): KnowledgeFile => ({
   id: item.doc_id,
   filename: item.file_name,
   file_type: item.file_name.split('.').pop() || 'unknown',
   file_size: item.file_size || 0,
-  // 将后端的 'indexed' 状态转换为前端展示的 'ready'
   status: item.status === 'indexed' ? 'ready' : item.status,
   created_at: item.upload_time,
   tx_hash: item.tx_hash,
@@ -29,17 +37,16 @@ const mapBackendToFrontend = (item: any): KnowledgeFile => ({
 
 export const knowledgeService = {
   /**
-   * 获取文档列表
+   * Fetch documents.
    */
   getDocuments: async (): Promise<KnowledgeFile[]> => {
     const res = await api.get('/documents');
-    // 如果 res 是数组，直接用；如果 res.data 是数组，用 res.data
     const list = Array.isArray(res) ? res : (res?.data || []);
     return list.map(mapBackendToFrontend);
   },
 
   /**
-   * 上传文档
+   * Upload a document.
    */
   uploadDocument: async (file: File) => {
     const formData = new FormData();
@@ -53,7 +60,7 @@ export const knowledgeService = {
   },
 
   /**
-   * 删除文档
+   * Delete a document.
    */
   deleteDocument: async (docId: number) => {
     const response = await api.delete(`/documents/${docId}`);

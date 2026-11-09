@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { createJSONStorage, persist } from 'zustand/middleware';
 
 interface UserInfo {
   user_id: number;
@@ -22,7 +22,8 @@ export const useAuthStore = create<AuthState>()(
       logout: () => set({ token: null, user: null }),
     }),
     {
-      name: 'trustflow-storage', // localStorage key
+      name: 'trustflow-storage',
+      storage: createJSONStorage(() => sessionStorage),
     }
   )
 );

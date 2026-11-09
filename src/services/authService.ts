@@ -14,13 +14,11 @@ interface LoginResponse {
 }
 
 export const authService = {
-  // 1.1 获取 Nonce
   getNonce: (wallet_address: string) => {
-    return api.post<any, NonceResponse>('/auth/nonce', { wallet_address });
+    return api.post<unknown, NonceResponse>('/auth/nonce', { wallet_address });
   },
   
-  // 1.2 签名登录
   login: (wallet_address: string, signature: string) => {
-    return api.post<any, LoginResponse>('/auth/login', { wallet_address, signature });
+    return api.post<unknown, LoginResponse>('/auth/login', { wallet_address, signature });
   }
 };

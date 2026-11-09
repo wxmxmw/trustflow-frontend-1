@@ -5,9 +5,7 @@ import {
   Button, 
   Input, 
   List, 
-  Modal, 
-  Typography,
-  Tag 
+  Modal,
 } from 'antd';
 import { 
   PlusOutlined, 
@@ -19,15 +17,13 @@ import {
   LogoutOutlined,
 } from '@ant-design/icons';
 import { useAuthStore } from '../store/useAuthStore';
-import { useChatStore } from '../store/useChatStore'; // 引入 Store
+import { useChatStore } from '../store/useChatStore';
 
 const { Sider } = Layout;
-const { Text } = Typography;
 
 interface MainLayoutProps {
   children: React.ReactNode;
   onNewChat?: () => void;
-  // sessions 变为可选，内部会优先使用全局 Store
   sessions?: { session_id: number; title: string; last_active: string }[];
   currentSessionId?: number | null;
   onSessionClick?: (id: number) => void;
@@ -44,7 +40,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({
   const location = useLocation();
   const { user, logout } = useAuthStore();
   
-  // --- 接入全局状态 ---
   const { 
     sessions: globalSessions, 
     fetchSessions, 
@@ -55,29 +50,27 @@ const MainLayout: React.FC<MainLayoutProps> = ({
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [searchText, setSearchText] = useState('');
 
-  // 挂载时拉取一次真实数据
   useEffect(() => {
     fetchSessions();
-  }, []);
+  }, [fetchSessions]);
 
   const isKnowledgePage = location.pathname === '/knowledge';
 
-  // 搜索过滤：优先使用全局数据
   const filteredSessions = globalSessions.filter(session => 
     session.title.toLowerCase().includes(searchText.toLowerCase())
   );
 
   const formatAddress = (address?: string) => {
-    if (!address) return "未连接钱包";
+    if (!address) return "Wallet not connected";
     return `${address.slice(0, 6)}...${address.slice(-4)}`;
   };
 
   const handleLogout = () => {
     Modal.confirm({
-      title: '确认退出',
-      content: '确定要退出登录吗？',
-      okText: '退出',
-      cancelText: '取消',
+      title: 'Confirm sign out',
+      content: 'Are you sure you want to sign out?',
+      okText: 'Sign out',
+      cancelText: 'Cancel',
       onOk: () => {
         logout();
         navigate('/login');
@@ -85,9 +78,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({
     });
   };
 
-  // 统一处理会话点击：如果是知识库页面，点击会话需跳转
   const handleInternalSessionClick = (id: number) => {
-    setCurrentSessionId(id); // 更新全局 ID
+    setCurrentSessionId(id);
     if (onSessionClick) {
       onSessionClick(id);
     }
@@ -138,7 +130,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
                 type="text" 
                 icon={<PlusOutlined />} 
                 onClick={() => {
-                  setCurrentSessionId(null); // 清除当前选中
+                  setCurrentSessionId(null);
                   if (isKnowledgePage) navigate('/chat');
                   onNewChat?.();
                 }} 
@@ -166,7 +158,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
               onClick={() => navigate('/knowledge')}
             >
               <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <DatabaseOutlined /> 知识库
+                <DatabaseOutlined /> Knowledge Base
               </span>
             </div>
           </div>
@@ -184,7 +176,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({
                     className="hover-bg-gray"
                     style={{
                       ...styles.sidebarBtn,
-                      // 使用全局 globalSessionId 判断高亮
                       background: globalSessionId === item.session_id && !isKnowledgePage ? '#e0e0e0' : 'transparent',
                       fontWeight: globalSessionId === item.session_id && !isKnowledgePage ? 500 : 400,
                     }}
@@ -216,7 +207,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
               onClick={handleLogout}
             >
               <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <LogoutOutlined /> 退出登录
+                <LogoutOutlined /> Sign out
               </span>
             </div>
 
